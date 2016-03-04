@@ -1,6 +1,7 @@
 from flask import Flask
 from flask import request, redirect, session, url_for, escape, make_response, flash, abort
 import database
+import rauth
 
 app = Flask(__name__)
 # (session encryption) keep this really secret:
@@ -12,9 +13,35 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db' # absolute
 database.db.init_app(app) # bind
 database.db.create_all(app=app) # create tables
 
+def get_results(params): # see Yelp API
+  consumer_key = "NLcCQKXJM8VoQCm4IRktXQ"
+  consumer_secret = "2-x1L5H-RdqWXZr21yrVgLD15Xk"
+  token = "p3HHfCCvoeqCP7hefxJIKdV6GlY6kYjL"
+  token_secret = "UFkGuY04zsHhDlOSlbj_FG9YW4g"
+   
+  session = rauth.OAuth1Session(
+    consumer_key = consumer_key
+    ,consumer_secret = consumer_secret
+    ,access_token = token
+    ,access_token_secret = token_secret)
+     
+  request = session.get("http://api.yelp.com/v2/search",params=params)
+  data = request.json()
+  session.close()
+  return data
+
+def get_search_parameters(lat,lng): 
+  params = {} # see Yelp API
+  params["category_filter"] = "parks"
+  params["ll"] = "{},{}".format(str(lat),str(lng))
+  params["radius_filter"] = "5000"
+  return params
+
 @app.route('/')
 def index():
-	return "all ok"
+	params = get_search_parameters(53.4723679, -2.363677)
+	result = get_results(params)
+	return result
 
 @app.route('/create_user', methods=['POST'])
 def create_user():
