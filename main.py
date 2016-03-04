@@ -2,6 +2,7 @@ from flask import Flask
 from flask import request, redirect, session, url_for, escape, make_response, flash, abort
 import database
 import rauth
+import json
 
 app = Flask(__name__)
 # (session encryption) keep this really secret:
@@ -28,7 +29,13 @@ def get_results(params): # see Yelp API
   request = session.get("http://api.yelp.com/v2/search",params=params)
   data = request.json()
   session.close()
-  return data
+
+  parks = []
+  field = ["id", "name", "distance", "snippet_text", "image_url", "location", "rating"]
+  for p in data["businesses"]:
+	parks.append({ f:p[f] for f in field if f in p })
+
+  return {"parks": parks}
 
 def get_search_parameters(lat,lng): 
   params = {} # see Yelp API
@@ -41,7 +48,7 @@ def get_search_parameters(lat,lng):
 def index():
 	params = get_search_parameters(53.4723679, -2.363677)
 	result = get_results(params)
-	return result
+	return json.dumps(result)
 
 @app.route('/create_user', methods=['POST'])
 def create_user():
