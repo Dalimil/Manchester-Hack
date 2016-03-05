@@ -1,18 +1,11 @@
 from flask import Flask
-from flask import request, redirect, session, url_for, escape, make_response, flash, abort
+from flask import request, redirect, session, url_for, escape, make_response
 import database
 import rauth
 import json
+import os
 
-app = Flask(__name__)
-# (session encryption) keep this really secret:
-app.secret_key = "bnNoqxXSgzoXSOezxpZjb8mrMp5L0L4mJ4o8nRzn"
-
-# SQL Alchemy database setup
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db' # absolute
-# also possible "mysql://username:password@server/db" (or postgresql)
-database.db.init_app(app) # bind
-database.db.create_all(app=app) # create tables
+# ---------------------------------------------
 
 def get_results(params): # see Yelp API
   consumer_key = "NLcCQKXJM8VoQCm4IRktXQ"
@@ -21,11 +14,11 @@ def get_results(params): # see Yelp API
   token_secret = "UFkGuY04zsHhDlOSlbj_FG9YW4g"
    
   session = rauth.OAuth1Session(
-    consumer_key = consumer_key
-    ,consumer_secret = consumer_secret
-    ,access_token = token
-    ,access_token_secret = token_secret)
-     
+	consumer_key = consumer_key
+	,consumer_secret = consumer_secret
+	,access_token = token
+	,access_token_secret = token_secret)
+	 
   request = session.get("http://api.yelp.com/v2/search",params=params)
   data = request.json()
   session.close()
@@ -44,24 +37,53 @@ def get_search_parameters(lat,lng):
   params["radius_filter"] = "5000"
   return params
 
+def allowed_file(filename):
+	return '.' in filename and filename.rsplit('.', 1)[1] in set(['png', 'jpg', 'jpeg'])
+
+
+# -----------------------------------------------------
+
+app = Flask(__name__)
+# (session encryption) keep this really secret:
+app.secret_key = "bnNoqxXSgzoXSOezxpZjb8mrMp5L0L4mJ4o8nRzn"
+
+# SQL Alchemy database setup
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db' # absolute
+# also possible "mysql://username:password@server/db" (or postgresql)
+database.db.init_app(app) # bind
+database.db.create_all(app=app) # create tables
+
+# -----------------------------------------------------
+
 @app.route('/')
 def index():
-	params = get_search_parameters(53.4723679, -2.363677)
+	return """Use:<br> <b>GET /parks?lat=53.4723679&lng=-2.363677</b> to get Yelp data<br />
+			<b> POST /add_picture [img=file&]</b><br>
+			<b> GET /pictures/park_id </b><br>"""
+
+@app.route('/parks')
+def parks():
+	lat = request.args.get('lat', 53.4723679)
+	lng = request.args.get('lng', -2.363677)
+	params = get_search_parameters(lat, lng)
 	result = get_results(params)
 	return json.dumps(result)
 
-@app.route('/create_user', methods=['POST'])
-def create_user():
-	# database.add_user(name, "1234-"+name)
-	return "created"
+@app.route('/add_picture', methods=['POST'])
+def add_picture():
+	file = request.files['img']
+	if file and allowed_file(file.filename):
+		filename = secure_filename(file.filename)
+		file.save(os.path.join('tmp', filename))
 
-@app.route('/user/<name>')
-def get_user(name=None):
-	# name is a variable obtained from the url path
-	print(database.get_users()) 
-	return "Bob"
+	database.add_picture(filename)
+	return "OK"
+
+@app.route('/pictures/<park_id>')
+def get_pi(park_id=None):
+	print(database.get_pictures(park_id)) 
+	return "OK"
 
 
 if __name__ == '__main__':
-	#host='0.0.0.0' only with debug disabled - security risk
 	app.run(port=8080, debug=True)
