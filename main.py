@@ -39,7 +39,9 @@ def get_results(params): # see Yelp API
   for p in data["businesses"]:
 	parks.append({ f:p[f] for f in field if f in p })
 
-  return {"parks": parks}
+  closest = min(data["businesses"], key=lambda p: p["distance"])
+
+  return {"parks": parks, "inside": closest["id"] if closest["distance"] < 500 else "0"}
 
 def get_search_parameters(lat,lng): 
   params = {} # see Yelp API
