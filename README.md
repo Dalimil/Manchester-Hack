@@ -2,10 +2,12 @@
 
 ## This is the backend part of the app
 
-### Name: Park Painter
-### Tagline: Create and explore virtual art in local parks.
+### Basic info
+Name: **Park Painter**
 
-### Super-short summary for others: An app that allows users to geo-cache digital paintings in local parks.
+Tagline: **Create and explore virtual art in local parks.**
+
+Super-short summary for others: An app that allows users to geo-cache digital paintings in local parks.
 
 ### Project Goal:
 Promote engagement in a local community by providing a fun new way to interact with parks in your city.
@@ -28,7 +30,3 @@ Users can also see a list of parks nearby (from Yelp), along with their names, p
 
 Users have a profile which includes their picture, name, and rank (with how many parks they have visited). The name and picture can be changed. They can also view all the ranks possible and share their current rank on social media.
 
-### Additional Features (time-permitting):
-• Users can ‘like’ boards by other people
-• Boards display the image and name of those who created them
-• Global list of recently added boards around the world
