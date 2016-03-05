@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import hashlib
 import json
+import os
 
 db = SQLAlchemy()
 

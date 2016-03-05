@@ -4,6 +4,17 @@ import database
 import rauth
 import json
 import os
+from werkzeug import secure_filename
+import random
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+cloudinary.config( 
+  cloud_name = "dhldfg16r", 
+  api_key = "155162611414169", 
+  api_secret = "E2SkhPl92ZV-Ojf4lfIbGOThC4w" 
+)
 
 # ---------------------------------------------
 
@@ -74,15 +85,17 @@ def parks():
 def add_picture():
 	file = request.files['img']
 	if file and allowed_file(file.filename):
-		filename = secure_filename(file.filename)
-		file.save(os.path.join('tmp', filename))
+		path = cloudinary.uploader.upload(file)
+		path = path["url"]
+		park_id = request.form['park_id'] or 'default_park_id'
+		name = request.form['name'] or "my pic"
+		lat = request.form['lat'] or 53.4723679
+		lng = request.form['lng'] or -2.363677
+		user = request.form['user'] or 'default'
+		print(park_id, path, name, lat, lng, user)
+		return "OK " + str(database.add_picture(park_id, path, name, lat, lng, user))
 
-	park_id = request.args.get('park_id', 'default_park_id')
-	name = request.args.get('name', "my_pic")
-	lat = request.args.get('lat', 53.4723679)
-	lng = request.args.get('lng', -2.363677)
-	user =request.args.get('user', 'default')
-	return "OK" + str(database.add_picture(park_id, filename, name, lat, lng, user))
+	abort(401)
 
 @app.route('/pictures/<park_id>')
 def get_pictures(park_id=None):
@@ -90,7 +103,17 @@ def get_pictures(park_id=None):
 
 @app.route('/debug')
 def debug():
-	return str(database.add_picture("park-3", "filename.jpg", "fileXName", 50, -1, "def-user"))
+	return """<form action="/add_picture" enctype="multipart/form-data" method="post">
+		<p>Park id:<br> <input type="text" name="park_id" size="30"></p>
+		<p>Name:<br> <input type="text" name="name" size="30"></p>
+		<p>Lat:<br> <input type="text" name="lat" size="30"></p>
+		<p>Lng:<br> <input type="text" name="lng" size="30"></p>
+		<p>User:<br> <input type="text" name="user" size="30"></p>
+		<p>File:<br> <input type="file" name="img" size="40"></p>
+		<input type="submit" value="Send">
+		</form>
+		"""
+	# return str(database.add_picture("park-3", "filename.jpg", "fileXName", 50, -1, "def-user"))
 
 
 if __name__ == '__main__':
