@@ -11,9 +11,9 @@ import cloudinary.uploader
 import cloudinary.api
 
 cloudinary.config( 
-  cloud_name = "dhldfg16r", 
-  api_key = "155162611414169", 
-  api_secret = "E2SkhPl92ZV-Ojf4lfIbGOThC4w" 
+  cloud_name = "---OBTAINED_AFTER_REGISTRATION---", 
+  api_key = "---------", 
+  api_secret = "-----------" 
 )
 
 # ---------------------------------------------
